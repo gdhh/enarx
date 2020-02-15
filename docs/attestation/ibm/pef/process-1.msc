@@ -11,6 +11,7 @@ msc {
   ultravisor [textbgcolor="yellow"],
   tpm        [textbgcolor="yellow"];
 
+  host box ultravisor [label="this flow assumes that the VM is generated after the target is certified"];
   tenant=>host [label="cert chain request"];
   host=>tpm [label="cert chain request"];
   tpm=>host [label="cert chain reply"];

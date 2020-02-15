@@ -14,7 +14,10 @@ msc {
   ultravisor [textbgcolor="yellow"],
   tpm        [textbgcolor="yellow"];
 
-  tenant box tenant [label="tenant knows seed"];
+  host box ultravisor [label="This flow assumes:
+\n    1) Tenant knows seed (secret required to decrypt VM)
+\n    2) The VM image is on the host
+\n    3) The lock box is inserted into the # VM after the target is certified"];
   tenant=>host [label="cert chain request"];
   host=>tpm [label="cert chain request"];
   tpm=>host [label="cert chain reply"];
@@ -25,11 +28,12 @@ msc {
   tenant box tenant [label="validate cert chain"];
   tenant box tenant [label="encrypt lockbox(pubkey,\nseed)"];
   tenant=>host [label="deliver lockbox"];
+  host box host [label="insert lockbox \ninto VM"];
+
   ...;
 
   --- [label="VM START"];
 
-  host box host [label="insert lockbox \ninto VM"];
   host=>bootloader [label="VM starts at prom_init"];
   bootloader=>ultravisor [label="enter SVM mode\n[ESM operand]"];
   ultravisor => tpm [label="lockbox"];
