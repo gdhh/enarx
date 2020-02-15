@@ -1,0 +1,45 @@
+# Commits which modify this file MUST generate the new .png!
+# We need a way to specify the assumptions and dependancies
+# this flow assumes that the VM is generated after the target is certified
+#
+msc {
+  tenant     [textbgcolor="green"],
+  host       [textbgcolor="red"],
+  SLOF       [textbgcolor="orange"],
+  bootloader [textbgcolor="orange"],
+  kernel     [textbgcolor="orange"],
+  ultravisor [textbgcolor="yellow"],
+  tpm        [textbgcolor="yellow"];
+
+  tenant=>host [label="cert chain request"];
+  host=>tpm [label="cert chain request"];
+  tpm=>host [label="cert chain reply"];
+  host=>tenant [label="cert chain reply"];
+
+  ...;
+
+  tenant box tenant [label="validate cert chain"];
+  tenant box tenant [label="generate seed"];
+  tenant box tenant [label="create SVM (seed, \nprivate data)"];
+  tenant box tenant [label="encrypt lockbox(pubkey,\nseed)"];
+  tenant=>host [label="deliver VM"];
+
+  --- [label="VM START"];
+
+  host=>bootloader [label="VM starts at prom_init"];
+  bootloader=>ultravisor [label="enter SVM mode\n[ESM operand]"];
+  ultravisor => tpm [label="lockbox"];
+  tpm => ultravisor [label="seed"];
+  ultravisor box ultravisor [label="derrive HMAC key,\nsymmetric Key"];
+  ultravisor box ultravisor [label="validate payload data"];
+  ultravisor => host [label="validation fails"];
+  ultravisor box ultravisor [label="check VM integrity"];
+  ultravisor => host [label="validation fails"];
+  ultravisor => bootloader [label="continue"];
+  bootloader => kernel [label="continue"];
+  kernel => ultravisor [label="get passphrase"];
+  ultravisor => kernel [label="passphrase"];
+  kernel box kernel [label="unlock volume"];
+
+  --- [label="BOOT COMPLETE"];
+}

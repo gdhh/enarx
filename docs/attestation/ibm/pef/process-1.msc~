@@ -1,0 +1,40 @@
+# Commits which modify this file MUST generate the new .png!
+# We need a way to specify the assumptions and dependancies 
+msc {
+  tenant     [textbgcolor="green"],
+  host       [textbgcolor="red"],
+  SLOF       [textbgcolor="orange"],
+  bootloader [textbgcolor="orange"],
+  kernel     [textbgcolor="orange"],
+  ultravisor [textbgcolor="yellow"],
+  tpm        [textbgcolor="yellow"];
+
+  tenant=>host [label="cert chain request"];
+  host=>tpm [label="cert chain request"];
+  tpm=>host [label="cert chain reply"];
+  host=>tenant [label="cert chain reply"];
+
+  ...;
+
+  tenant box tenant [label="validate cert chain"];
+  tenant box tenant [lael="generate symmetric seed"]
+  tenant box tenant [label="create SVM with Integrity metadata and private data"];
+  tenant box tenant [label="encrypt lockbox(pubkey,\n symmetric seed)"];
+  tenant=>host [label="deliver VM"];
+
+  --- [label="VM START"];
+
+  host=>bootloader [label="VM starts at prom_init"];
+  bootloader=>ultravisor [label="enter SVM mode\n[ESM operand]"];
+  ultravisor => tpm [label="lockbox"];
+  tpm => ultravisor [label="symmetric seed"];
+  ultravisor box ultravisor [label="derrive HMAC key and symmetric Key"]
+  ultravisor box ultravisor [label="validate payload data"];
+  ultravisor => bootloader [label="return to bootloader"]
+  bootloader => kernel [label="continue booting"]
+  kernel => ultravisor [label="request passphrase"];
+  ultravisor => kernel [label="passphrase"];
+  kernel box kernel [label="unlock volume"];
+
+  --- [label="BOOT COMPLETE"];
+}
